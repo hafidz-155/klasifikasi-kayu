@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Sistem Identifikasi Kayu</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+    --primary:#8B5E3C;
+    --secondary:#A67C52;
+    --accent:#4F7C5B;
+    --bg:#F8F6F2;
+    --card:#FFFFFF;
+    --text:#2C2C2C;
+    --muted:#777;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Inter',sans-serif;
+}
+
+body{
+    background:var(--bg);
+    color:var(--text);
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    padding:40px 20px;
+}
+
+.hero{
+    text-align:center;
+    margin-bottom:40px;
+}
+
+.hero h1{
+    font-size:3rem;
+    color:var(--primary);
+    margin-bottom:10px;
+}
+
+.hero p{
+    color:var(--muted);
+    font-size:1.1rem;
+}
+
+/* upload */
+
+.upload-card{
+    background:var(--card);
+    border-radius:24px;
+    padding:40px;
+    box-shadow:0 15px 40px rgba(0,0,0,.08);
+}
+
+.drop-area{
+    border:3px dashed var(--secondary);
+    border-radius:20px;
+    padding:60px 20px;
+    text-align:center;
+    transition:.3s;
+    cursor:pointer;
+}
+
+.drop-area:hover{
+    background:#fcfaf7;
+}
+
+.drop-area h2{
+    margin-top:20px;
+}
+
+.drop-area p{
+    color:var(--muted);
+    margin-top:10px;
+}
+
+.upload-btn{
+    margin-top:20px;
+    background:var(--primary);
+    color:white;
+    border:none;
+    padding:15px 30px;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:16px;
+}
+
+.identify-btn{
+    width:100%;
+    margin-top:20px;
+    background:var(--accent);
+    color:white;
+    border:none;
+    padding:18px;
+    border-radius:14px;
+    font-size:17px;
+    cursor:pointer;
+}
+
+/* preview */
+
+.preview{
+    text-align:center;
+    margin-top:25px;
+}
+
+.preview img{
+    width:250px;
+    border-radius:16px;
+    box-shadow:0 10px 25px rgba(0,0,0,.1);
+}
+
+/* result */
+
+.result-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:20px;
+    margin-top:30px;
+}
+
+.result-card{
+    background:white;
+    border-radius:20px;
+    padding:25px;
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.result-card h3{
+    color:var(--muted);
+    margin-bottom:10px;
+}
+
+.result-value{
+    font-size:2rem;
+    font-weight:700;
+    color:var(--primary);
+}
+
+/* process */
+
+.section{
+    margin-top:35px;
+}
+
+.section-title{
+    margin-bottom:20px;
+    font-size:1.5rem;
+}
+
+.image-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+}
+
+.image-card{
+    background:white;
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 10px 20px rgba(0,0,0,.06);
+}
+
+.image-card h4{
+    padding:12px;
+    background:var(--primary);
+    color:white;
+}
+
+.image-card img{
+    width:100%;
+    height:220px;
+    object-fit:cover;
+}
+
+/* loading */
+
+.loading{
+    display:none;
+    margin-top:20px;
+}
+
+.bar{
+    width:100%;
+    height:12px;
+    background:#ddd;
+    border-radius:30px;
+    overflow:hidden;
+}
+
+.bar-fill{
+    width:40%;
+    height:100%;
+    background:linear-gradient(
+    90deg,
+    var(--primary),
+    var(--accent)
+    );
+    animation:move 1.2s infinite;
+}
+
+@keyframes move{
+
+0%{
+transform:translateX(-100%);
+}
+
+100%{
+transform:translateX(300%);
+}
+
+}
+
+/* info */
+
+.info{
+    margin-top:30px;
+    background:white;
+    padding:25px;
+    border-radius:20px;
+    box-shadow:0 10px 20px rgba(0,0,0,.05);
+}
+
+.info p{
+    line-height:1.8;
+    color:#555;
+}
+
+@media(max-width:768px){
+
+.hero h1{
+font-size:2rem;
+}
+
+.drop-area{
+padding:40px 15px;
+}
+
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div class="hero">
+<h1>🌳 Sistem Identifikasi Kayu</h1>
+<p>
+Identifikasi jenis kayu menggunakan metode
+GLCM dan Euclidean Distance
+</p>
+</div>
+
+<div class="upload-card">
+
+<form id="uploadForm"
+action="/predict"
+method="POST"
+enctype="multipart/form-data">
+
+<div class="drop-area" id="dropArea">
+
+<div style="font-size:70px;">📷</div>
+
+<h2>Upload Gambar Kayu</h2>
+
+<p>Drag & Drop atau klik untuk memilih file</p>
+
+<input type="file"
+id="imageInput"
+name="image"
+hidden
+required>
+
+<button type="button"
+class="upload-btn"
+id="chooseBtn">
+
+Pilih Gambar
+
+</button>
+
+</div>
+
+<div class="preview" id="preview"></div>
+
+<button type="submit"
+class="identify-btn">
+
+🔍 Identifikasi Sekarang
+
+</button>
+
+<div class="loading" id="loading">
+
+<p style="margin-bottom:10px;">
+Memproses gambar...
+</p>
+
+<div class="bar">
+<div class="bar-fill"></div>
+</div>
+
+</div>
+
+</form>
+
+</div>
+
+{% if prediction %}
+
+<div class="result-grid">
+
+<div class="result-card">
+<h3>Jenis Kayu</h3>
+<div class="result-value">
+{{ prediction }}
+</div>
+</div>
+
+<div class="result-card">
+<h3>Euclidean Distance</h3>
+<div class="result-value">
+{{ distance }}
+</div>
+</div>
+
+</div>
+
+<div class="section">
+
+<h2 class="section-title">
+Tahapan Pengolahan Gambar
+</h2>
+
+<div class="image-grid">
+
+<div class="image-card">
+<h4>Gambar Asli</h4>
+<img src="{{ original_image }}">
+</div>
+
+<div class="image-card">
+<h4>Resize 30x30</h4>
+<img src="{{ resized_image }}">
+</div>
+
+<div class="image-card">
+<h4>Grayscale</h4>
+<img src="{{ gray_image }}">
+</div>
+
+<div class="image-card">
+<h4>Kuantisasi</h4>
+<img src="{{ quantized_image }}">
+</div>
+
+</div>
+
+</div>
+
+{% endif %}
+
+<div class="info">
+
+<h3 style="margin-bottom:10px;">
+Tentang Sistem
+</h3>
+
+<p>
+Sistem ini menggunakan metode Gray Level
+Co-Occurrence Matrix (GLCM) untuk
+mengekstraksi karakteristik tekstur kayu.
+Hasil ekstraksi fitur kemudian dibandingkan
+menggunakan Euclidean Distance untuk
+menentukan jenis kayu yang paling mirip
+dengan data pelatihan.
+</p>
+
+</div>
+
+</div>
+
+<script>
+
+const dropArea=document.getElementById('dropArea');
+const fileInput=document.getElementById('imageInput');
+const chooseBtn=document.getElementById('chooseBtn');
+
+chooseBtn.onclick=()=>{
+fileInput.click();
+};
+
+dropArea.onclick=()=>{
+fileInput.click();
+};
+
+fileInput.onchange=()=>{
+showPreview(fileInput.files[0]);
+};
+
+dropArea.addEventListener('dragover',(e)=>{
+e.preventDefault();
+});
+
+dropArea.addEventListener('drop',(e)=>{
+e.preventDefault();
+fileInput.files=e.dataTransfer.files;
+showPreview(e.dataTransfer.files[0]);
+});
+
+function showPreview(file){
+
+const reader=new FileReader();
+
+reader.onload=function(e){
+
+document.getElementById('preview').innerHTML=
+`<img src="${e.target.result}">`;
+
+}
+
+reader.readAsDataURL(file);
+
+}
+
+document.getElementById('uploadForm')
+.addEventListener('submit',()=>{
+
+document.getElementById('loading')
+.style.display='block';
+
+});
+
+</script>
+
+</body>
+</html>
